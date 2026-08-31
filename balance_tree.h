@@ -6,6 +6,7 @@
 #include<memory>//smart pointer
 #include<iostream>
 #include<vector>
+#include<algorithm>
 template<class T>
 struct  BinaryTreeNode
 {
@@ -61,6 +62,9 @@ class AVLtree
         void insert(const T& value);
         void remove(const T& value);
         AVLtreeNode<T>* search(const T& value) const;
+        bool contains(const T& value) const;
+        AVLtreeNode<T>* getRoot() const { return root; }
+        
     private:
         AVLtreeNode<T>* root;
         void Delete(const T& value);
@@ -81,24 +85,28 @@ class AVLtree
 
 
 template<class T>
-AVLtreeNode<T>* AVLtree<T>::search(const T& value)const//if value in the tree ,return the node poniter,otherwise return the parent node pointer of the value
+AVLtreeNode<T>* AVLtree<T>::search(const T& value) const
 {
-    if(root == nullptr)
-        return nullptr;
     AVLtreeNode<T>* current = root;
-    while(current != nullptr)
+    AVLtreeNode<T>* last = nullptr;
+    while (current != nullptr)
     {
-        if(value == current->data)
+        last = current;
+        if (value == current->data)
             return current;
-        else if(value < current->data )
+        else if (value < current->data)
             current = current->left;
-        else if(value > current->data)
+        else
             current = current->right;
-        else if(value < current->data && current->left == nullptr)
-            return current;
-        else if(value > current->data && current->right == nullptr)
-            return current;
     }
+    return last;
+}
+
+template<class T>
+bool AVLtree<T>::contains(const T& value) const
+{
+    AVLtreeNode<T>* node = search(value);
+    return node != nullptr && node->data == value;
 }
 
 template<class T>
@@ -107,9 +115,9 @@ void AVLtree<T>::insert(const T& value)
     AVLtreeNode<T>* newNode = new(std::nothrow) AVLtreeNode<T>(value);
     if(newNode == nullptr)
     {
-        std::cerr<<"Memeory allocation failed for new node."<<std::endl;
+        std::cerr << "Memory allocation failed for new node." << std::endl;
+        return;
     }
-
 
     if(root == nullptr)
     {
@@ -118,48 +126,44 @@ void AVLtree<T>::insert(const T& value)
     }
 
     AVLtreeNode<T>* parent = search(value);
-    if(parent->data > value) // new node insert on the left side of the parent 
+    if(parent->data > value) // new node insert on the left side of the parent
     {
         parent->left = newNode;
         newNode->parent = parent;
     }
-    else if(parent->data < value) //new node insert on the right side of the parent
+    else if(parent->data < value) // new node insert on the right side of the parent
     {
-        parent -> right = newNode;
+        parent->right = newNode;
         newNode->parent = parent;
     }
 
-    //insertion compeleted ,now we need to update the balance factor and perform rotation 
-    postOrderTraversal(root,updateHeight);
-    postOrderTraversal(root,updataBalanceFactor);   
-    //update the balance factor 
+    postOrderTraversal(root, updateHeight);
+    postOrderTraversal(root, updataBalanceFactor);
 
-    AVLtreeNode<T>* unbalanceNode = newNode->parent->parent;
-    while(unbalanceNode != nullptr && (unbalanceNode->balanceFactor != AVLtreeNode<T>::BALANCE 
-        || unbalanceNode->balanceFactor != AVLtreeNode<T>::Lheavy || unbalanceNode->balanceFactor != AVLtreeNode<T>::Rheavy))
+    AVLtreeNode<T>* unbalanceNode = newNode->parent;
+    while (unbalanceNode != nullptr && unbalanceNode->balanceFactor != AVLtreeNode<T>::LUNBALANCED
+        && unbalanceNode->balanceFactor != AVLtreeNode<T>::RUNBALANCED)
     {
         unbalanceNode = unbalanceNode->parent;
     }
-    if(unbalanceNode == nullptr)
+    if (unbalanceNode == nullptr)
         return;
-    if(unbalanceNode->balanceFactor == AVLtreeNode<T>::Lheavy && newNode->data < parent->left->data)//LLcase
+
+    if (unbalanceNode->balanceFactor == AVLtreeNode<T>::LUNBALANCED)
     {
-        LLrotate(unbalanceNode);
+        if (newNode->data < unbalanceNode->left->data)
+            LLrotate(unbalanceNode);
+        else
+            LRrotate(unbalanceNode);
     }
-    else if (unbalanceNode->balanceFactor == AVLtreeNode<T>::Lheavy && newNode->data > parent->left->data)
+    else if (unbalanceNode->balanceFactor == AVLtreeNode<T>::RUNBALANCED)
     {
-        /* code */
-        LRrotate(unbalanceNode);
+        if (newNode->data > unbalanceNode->right->data)
+            RRrotate(unbalanceNode);
+        else
+            RLrotate(unbalanceNode);
     }
-    else if(unbalanceNode->balanceFactor == AVLtreeNode<T>::Rheavy && newNode->data > parent->right->data)
-    {
-        RRrotate(unbalanceNode);
-    }
-    else if(unbalanceNode->balanceFactor == AVLtreeNode<T>::Rheavy && newNode->data < parent->right->data)
-    {
-        RLrotate(unbalanceNode);
-    }
-        return ;
+    return;
 }
 
 template<class T>
@@ -253,7 +257,9 @@ void AVLtree<T>::remove(const T& value)
 template<class T>
 void AVLtree<T>::updataBalanceFactor(AVLtreeNode<T>* node)
 {
-    node->balanceFactor = static_cast<typename AVLtreeNode<T>::BalanceFactor>(node->left->height - node->right->height);
+    int leftHeight = node->left ? node->left->height : 0;
+    int rightHeight = node->right ? node->right->height : 0;
+    node->balanceFactor = static_cast<typename AVLtreeNode<T>::BalanceFactor>(leftHeight - rightHeight);
 }
 
 
@@ -264,10 +270,12 @@ void AVLtree<T>::updateHeight(AVLtreeNode<T>* node)
 }
 
 template<class T>
-void AVLtree<T>::postOrderTraversal(AVLtreeNode<T>* node,void (*visit)(AVLtreeNode<T>*))
+void AVLtree<T>::postOrderTraversal(AVLtreeNode<T>* node, void (*visit)(AVLtreeNode<T>*))
 {
-    postOrderTraversal(node->left,visit);
-    postOrderTraversal(node->right,visit);
+    if (node == nullptr)
+        return;
+    postOrderTraversal(node->left, visit);
+    postOrderTraversal(node->right, visit);
     visit(node);
 }
 
@@ -278,14 +286,21 @@ void AVLtree<T>::LLrotate(AVLtreeNode<T>*node)
     AVLtreeNode<T>* Lnode = node->left;
     AVLtreeNode<T>* LRnode = Lnode->right;
     AVLtreeNode<T>* parent = node->parent;
-    if(parent->data > node ->data)
+    if(parent == nullptr)
     {
-        parent -> left = Lnode;
+        root = Lnode;
     }
-    else 
-        parent ->right = Lnode;
+    else if(parent->data > node->data)
+    {
+        parent->left = Lnode;
+    }
+    else
+    {
+        parent->right = Lnode;
+    }
     Lnode->parent = parent;
-    LRnode ->parent = node;
+    if (LRnode)
+        LRnode->parent = node;
     node->left = LRnode;
     Lnode->right = node;
     node->parent = Lnode;
@@ -297,20 +312,23 @@ void AVLtree<T>::LRrotate(AVLtreeNode<T>* node)
     AVLtreeNode<T>* Lnode = node->left;
     AVLtreeNode<T>* parent = node->parent;
     AVLtreeNode<T>* LRnode = Lnode->right;
-    LRnode ->parent = parent;
-    if(parent->data > node ->data)
+    if (LRnode == nullptr)
+        return;
+
+    if (parent == nullptr)
+        root = LRnode;
+    else if (parent->data > node->data)
         parent->left = LRnode;
     else
         parent->right = LRnode;
-    
+
+    LRnode->parent = parent;
     node->left = LRnode->right;
-    LRnode->right->parent = node;
-    LRnode->left->parent = Lnode;
-    Lnode->right = LRnode->left;
-
-    Lnode->parent = LRnode;
+    if (LRnode->right)
+        LRnode->right->parent = node;
     LRnode->left = Lnode;
-
+    Lnode->parent = LRnode;
+    Lnode->right = nullptr;
     node->parent = LRnode;
     LRnode->right = node;
 }
@@ -322,14 +340,21 @@ void AVLtree<T>::RRrotate(AVLtreeNode<T>* node)
     AVLtreeNode<T>* Rnode = node->right;
     AVLtreeNode<T>* RLnode = Rnode->left;
     AVLtreeNode<T>* parent = node->parent;
-    if(parent->data > node ->data)
+    if(parent == nullptr)
     {
-        parent -> left = Rnode;
+        root = Rnode;
     }
-    else 
-        parent ->right = Rnode;
+    else if(parent->data > node->data)
+    {
+        parent->left = Rnode;
+    }
+    else
+    {
+        parent->right = Rnode;
+    }
     Rnode->parent = parent;
-    RLnode ->parent = node;
+    if (RLnode)
+        RLnode->parent = node;
     node->right = RLnode;
     Rnode->left = node;
     node->parent = Rnode;
@@ -341,20 +366,23 @@ void AVLtree<T>::RLrotate(AVLtreeNode<T>* node)
     AVLtreeNode<T>* Rnode = node->right;
     AVLtreeNode<T>* parent = node->parent;
     AVLtreeNode<T>* RLnode = Rnode->left;
-    RLnode ->parent = parent;
-    if(parent->data > node ->data)
+    if (RLnode == nullptr)
+        return;
+
+    if (parent == nullptr)
+        root = RLnode;
+    else if (parent->data > node->data)
         parent->left = RLnode;
     else
         parent->right = RLnode;
-    
+
+    RLnode->parent = parent;
     node->right = RLnode->left;
-    RLnode->left->parent = node;
-    RLnode->right->parent = Rnode;
-    Rnode->left = RLnode->right;
-
-    Rnode->parent = RLnode;
+    if (RLnode->left)
+        RLnode->left->parent = node;
     RLnode->right = Rnode;
-
+    Rnode->parent = RLnode;
+    Rnode->left = nullptr;
     node->parent = RLnode;
     RLnode->left = node;
 }
@@ -394,7 +422,6 @@ void AVLtree<T>::L2rotate(AVLtreeNode<T>* node)
 {
     RLrotate(node);
 }
-
 
 
 #endif // BALANCE_TREE_H__

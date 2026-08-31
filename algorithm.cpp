@@ -13,6 +13,8 @@ void swap(Iterator first, Iterator second)
 template<typename Iterator>
 void Insertion_sort(Iterator first, Iterator last)
 {
+	using value_type = std::iterator_traits<Iterator>::value_type;
+	
 	if (first == last)
 		return;
 
@@ -77,6 +79,8 @@ void Merge_sort(Iterator first, Iterator last)
 		++out;
 	}
 }
+
+
 int Horner_polynome(int x,int* A,int n)
 {
     int y = 0;
@@ -86,4 +90,16 @@ int Horner_polynome(int x,int* A,int n)
     }
     return y;
 }
+
+
+template<class Iterator , class T>
+Iterator find(Iterator first,Iterator last,const T& value)
+{
+	while(first != last && *first != value)
+		++first;
+	return first;
+}
+
+
+
 

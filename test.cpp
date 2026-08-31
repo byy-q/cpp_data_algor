@@ -1,15 +1,27 @@
-#include<vector>
-#include<iostream>
-#include"algorithm.h"
-int main()
+//include 
+#include <string>
+#include <set>
+
+
+class Message;
+class Folder;
+
+
+class Message
 {
-    std::vector<int>arr = {4,3,2,5,6,3,};
-    auto ptr = arr.begin();
-    Merge_sort(arr.begin(),arr.end());
-    while(ptr != arr.end())
-    {
-        std::cout<<*ptr<<" ";
-        ptr++;
-    }
-    std::cout<<std::endl;
-}
+    friend class Folder;
+    public:
+        explicit Message(std::string s = std::string("")):contents(s){}
+        Message(const Message& copy);
+        Message& operator=(const Message& copy);
+        ~Message();
+        void Save(const Folder& );
+        void Remove(const Folder& );
+
+    private:
+        std::string contents;
+        std::set<Folder*> folder;
+
+};
+
+
