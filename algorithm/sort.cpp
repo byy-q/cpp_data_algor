@@ -1,0 +1,79 @@
+/**
+    *@brief:sort the array[begin,end)in ascending order
+    *@param:begin and last are the range of the array,begin is included while the end is excluded
+    *@note:the time complexity is O(nlogn) and the space complexity is O(n)
+*/
+template<typename Iterator>
+void Insertion_sort(Iterator first, Iterator last)
+{
+	if (first == last)
+		return;
+
+	for (Iterator it = std::next(first); it != last; ++it) {
+		auto value = *it;
+		Iterator pos = it;
+
+		while (pos != first) {
+			Iterator prev = std::prev(pos);
+			if (*prev <= value)
+				break;
+			*pos = *prev;
+			pos = prev;
+		}
+
+		*pos = value;
+	}
+}
+
+/** 
+    *@brief:sort the array[begin,end) in ascending order
+    *@param:begin and last are the range of the array,begin is included while the end is excluded
+    *@note: the function is implemented by divied and conquer method,the time complexity is O(nlogn)
+
+*/
+
+template<typename Iterator>
+void Merge_sort(Iterator first, Iterator last)
+{
+	auto distance = std::distance(first, last);
+	if (distance < 2)
+		return;
+
+	Iterator mid = first;
+	std::advance(mid, distance / 2);
+	Merge_sort(first, mid);
+	Merge_sort(mid, last);
+    //merge procedure
+	using value_type = typename std::iterator_traits<Iterator>::value_type;
+	std::vector<value_type> buffer;
+	buffer.reserve(static_cast<size_t>(distance));
+
+	Iterator left = first;
+	Iterator right = mid;
+
+	while (left != mid && right != last) {
+		if (*left <= *right) {
+			buffer.push_back(*left);
+			++left;
+		} else {
+			buffer.push_back(*right);
+			++right;
+		}
+	}
+
+	while (left != mid) {
+		buffer.push_back(*left);
+		++left;
+	}
+
+	while (right != last) {
+		buffer.push_back(*right);
+		++right;
+	}
+
+	Iterator out = first;
+	for (const auto& val : buffer) {
+		*out = val;
+		++out;
+	}
+}
