@@ -7,49 +7,49 @@
 
 
 #if defined(_WIN32) || defined(_WIN64)
-	#include "algorithm/Iterator.cpp"
+	#include "algorithm/Iterator.hpp"
 #elif defined(__linux__)
-	#include "algorithm/Iterator.cpp"
+	#include "algorithm/Iterator.hpp"
 #elif defined(__APPLE__)
-	#include "algorithm/Iterator.cpp"
+	#include "algorithm/Iterator.hpp"
 #endif
 
 
 #if defined(_WIN32) || defined(_WIN64)
-	#include "algorithm/sort.cpp"
+	#include "algorithm/sort.hpp"
 #elif defined(__linux__)
-	#include "algorithm/sort.cpp"
+	#include "algorithm/sort.hpp"
 #elif defined(__APPLE__)
-	#include "algorithm/sort.cpp"
-#endif
-
-
-
-#if defined(_WIN32) || defined(_WIN64)
-	#include "algorithm/horner.cpp"
-#elif defined(__linux__)
-	#include "algorithm/horner.cpp"
-#elif defined(__APPLE__)
-	#include "algorithm/horner.cpp"
+	#include "algorithm/sort.hpp"
 #endif
 
 
 
 #if defined(_WIN32) || defined(_WIN64)
-	#include "algorithm/sort.cpp"
+	#include "algorithm/horner.hpp"
 #elif defined(__linux__)
-	#include "algorithm/sort.cpp"
+	#include "algorithm/horner.hpp"
 #elif defined(__APPLE__)
-	#include "algorithm/sort.cpp"
+	#include "algorithm/horner.hpp"
+#endif
+
+
+
+#if defined(_WIN32) || defined(_WIN64)
+	#include "algorithm/sort.hpp"
+#elif defined(__linux__)
+	#include "algorithm/sort.hpp"
+#elif defined(__APPLE__)
+	#include "algorithm/sort.hpp"
 #endif
 
 
 #if defined(_WIN32) || defined(_WIN64)
-	#include "algorithm/Find.cpp"
+	#include "algorithm/Find.hpp"
 #elif defined(__linux__)
-	#include "algorithm/Find.cpp"
+	#include "algorithm/Find.hpp"
 #elif defined(__APPLE__)
-	#include "algorithm/Find.cpp"
+	#include "algorithm/Find.hpp"
 #endif
 
 

@@ -1,3 +1,9 @@
+/**
+	*@param 
+*/
+#ifdef _FIND_HPP_
+#define _FIND_HPP_
+
 template<class Iterator>
 Iterator __Find(Iterator first, Iterator last,const typename Iterator_traits<Iterator>::value_type& value,std::forward_iterator_tag)
 {
@@ -14,3 +20,5 @@ Iterator Find(Iterator first,Iterator last ,const typename Iterator_traits<Iteat
 {
 	return __Find(first,last,value,typename Iterator_traits<Iterator>::iterator_category);
 }
+
+#endif
