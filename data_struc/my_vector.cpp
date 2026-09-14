@@ -3,6 +3,9 @@
 /** 
     *@note: this is the linear array data structure,I wrote it to practice the 
     *       knowledge of the class copy control in the c plus plus
+    *@note: std::move(x) return a left value of the parameter x,after using std::move,you can 
+    *assign value to x,or delete x,but you can't using x's old value.
+    *@note: don't write using std::move;
 */
 #pragma once
 template<typename T>
