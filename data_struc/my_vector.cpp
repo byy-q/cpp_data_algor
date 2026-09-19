@@ -1,5 +1,5 @@
 #include <memory>
-
+#include <initializer_list>
 /** 
     *@note: this is the linear array data structure,I wrote it to practice the 
     *       knowledge of the class copy control in the c plus plus
@@ -7,17 +7,19 @@
     *assign value to x,or delete x,but you can't using x's old value.
     *@note: don't write using std::move;
 */
-#pragma once
 template<typename T>
 class MyVector
 {
+    private:
+        class Iterator;
+        class const_Iterator;
     public:
         MyVector(size_t size = 0, size_t capacity = 10):size(size),capacity(capacity){}
-        MyVector(initializer_list<T> lsit);//lsit initialize
+        MyVector(std::initializer_list<T> list);//lsit initialize
         MyVector(const MyVector<T>& copy);
         MyVector(MyVector<T>&& copy) noexcept;
         MyVector<T>& operator=(const MyVector<T>& copy);
-        MyVector<T>& operator=(Myvector<T>&& copy)& noexcept;
+        MyVector<T>& operator=(MyVector<T>&& copy)& noexcept;
         ~MyVector();
         void push_back(const T& value);
         void push_back(T&& value);
@@ -30,13 +32,11 @@ class MyVector
         size_t size;
         size_t capacity;
         std::allocator<T> alloc_controller;
-        class Iterator;
-        class const_Iterator;
-}
+};
 
 
 template<class T>
-MyVector<T>::MyVector(initializer_list<T> list)
+MyVector<T>::MyVector(std::initializer_list<T> list)
 {
     size = list.size();
     capacity = size * 2;
@@ -54,7 +54,7 @@ MyVector<T>::MyVector(const MyVector<T>& copy)
 }
 
 template<class T>
-MyVector<T>& MyVector<T>::operator=(const MyVector<T>& copy)&
+MyVector<T>& MyVector<T>::operator=(const MyVector<T>& copy)
 {
     if(this == &copy)
         return *this;
@@ -108,15 +108,15 @@ void MyVector<T>::push_back(const T& value)
         {
             alloc_controller.destroy(head+i);
         }
-        head = alloc_controller.allocate(copy.capacity);
-        capacity = copy.capacity;
+        head = alloc_controller.allocate(capacity*2);
+        capacity*=2;
     }
     alloc_controller.construct(head+size,value);
     size++;
 }
 
 template<class T>
-void MyVector<T>::push_back(const T&& value)
+void MyVector<T>::push_back(T&& value)
 {
      if(capacity < 2*(size+1))
      {
@@ -124,26 +124,22 @@ void MyVector<T>::push_back(const T&& value)
         {
             alloc_controller.destroy(head+i);
         }
-        head = alloc_controller.allocate(copy.capacity);
-        capacity = copy.capacity;
+        head = alloc_controller.allocate(2*capacity);
+        capacity = 2*capacity;
     }
     alloc_controller.construct(head+size,value);
     size++;
 }
 //no meaning to use move here
 
-template<class T>
-void MyVector<T>::push_back(T&& value)
-{
-    push_back(value);    
-}//对Int使用移动构造没有意义，因为Int是基本类型，移动构造和拷贝构造没有区别
+
 
 
 template<class T>
 class MyVector<T>::Iterator
 {
     public:
-        using iterator_category = std::random_access_tag;
+        using iterator_category = std::random_access_iterator_tag;
         using value_type = T;
         using difference_type = std::ptrdiff_t;
         using pointer = T*;
@@ -158,10 +154,10 @@ class MyVector<T>::Iterator
         T& operator*(){return *position;}
         T& operator++(){T& temp = *position;position++;return temp;}
         T& operator++(int){position++;return *position;}
-        T& operator--(){}{T& temp = *position;position--;return temp;}
+        T& operator--(){T& temp = *position;position--;return temp;}
         T& operator--(int){return *(--position);}
         Iterator operator+(int n){return Iterator(position+n);}
-        Iterator operatpr-(int n){return Iterator(position-n);}
+        Iterator operator-(int n){return Iterator(position-n);}
         T& operator[](int n){return position[n];}
         bool operator>(Iterator it2){return position > it2.position;}
         bool operator<(Iterator it2){return position < it2.position;}
@@ -169,46 +165,46 @@ class MyVector<T>::Iterator
     private:
         T* position;
 
-}
+};
 template<class T>
 class MyVector<T>::const_Iterator
 {
 
     public:
-        using iterator_category = std::random_access_tag;
+        using iterator_category = std::random_access_iterator_tag;
         using value_type = T;
         using difference_type = std::ptrdiff_t;
         using pointer = const T*;
         using reference = const T&;   
 
-        Iterator(T* position):position(position){}
-        Iterator(const Iterator& copy){position = copy.position;}
-        Iteratpr(Iterator&& move) = delete;
-        ~Iterator(){position = nullptr;}
+        const_Iterator(T* position):position(position){}
+        const_Iterator(const Iterator& copy){position = copy.position;}
+        const_Iterator(Iterator&& move) = delete;
+        ~const_Iterator(){position = nullptr;}
         Iterator& operator=(const Iterator& copy){position = copy.position;}
         Iterator& operator=(Iterator&& move) = delete;
         T& operator*(){return *position;}
         T& operator++(){T& temp = *position;position++;return temp;}
         T& operator++(int){position++;return *position;}
-        T& operator--(){}{T& temp = *position;position--;return temp;}
+        T& operator--(){T& temp = *position;position--;return temp;}
         T& operator--(int){return *(--position);}
         Iterator operator+(int n){return Iterator(position+n);}
-        Iterator operatpr-(int n){return Iterator(position-n);}
+        Iterator operator-(int n){return Iterator(position-n);}
         T& operator[](int n){return position[n];}
         bool operator>(Iterator it2){return position > it2.position;}
         bool operator<(Iterator it2){return position < it2.position;}
     private:
         const T* position;
-}
+};
 
 template<class T>
-MyVector<T>::Iterator MyVector<T>::begin()const
+typename  MyVector<T>::Iterator MyVector<T>::begin()const
 {
     return Iterator(head);
 }
 
 template<class T>
-MyVector<T>::Iterator MyVector<T>::end()const
+typename MyVector<T>::Iterator MyVector<T>::end()const
 {
     return Iterator(head+size);
 }
@@ -216,12 +212,12 @@ MyVector<T>::Iterator MyVector<T>::end()const
 
 
 template<class T>
-MyVector<T>::const_Iterator MyVector<T>::cbegin()const
+typename MyVector<T>::const_Iterator MyVector<T>::cbegin()const
 {
     return Iterator(head);
 }
 template<class T>
-MyVector<T>::const_Iterator MyVector<T>::cend()const
+typename MyVector<T>::const_Iterator MyVector<T>::cend()const
 {
     return Iterator(head+size);
 }
